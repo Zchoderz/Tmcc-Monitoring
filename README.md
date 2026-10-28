@@ -65,3 +65,4 @@ Every Lokal row has an `admin_id`. Dashboard, edit, and delete operations requir
 - YouTube videos must allow embedding for the player to work.
 - Sign-up is open to anyone who can reach the site. If account creation should be invite-only, add an invitation or owner approval process before launch.
 - This starter does not claim or display official YouTube view counts.
+Deployment update
