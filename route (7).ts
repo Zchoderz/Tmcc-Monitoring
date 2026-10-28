@@ -1,9 +1,0 @@
-import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
-import { sql } from "@/lib/db";
-import { z } from "zod";
-import { getYouTubeId } from "@/lib/youtube";
-const schema=z.object({name:z.string().trim().min(1).max(100),description:z.string().max(500).optional().default(""),youtube_url:z.string().url().max(500)});
-type Ctx={params:Promise<{id:string}>};
-export async function PATCH(req:Request,ctx:Ctx){const admin=await getSession();if(!admin)return NextResponse.json({error:"Unauthorized"},{status:401});const {id}=await ctx.params;try{const p=schema.safeParse(await req.json());if(!p.success)return NextResponse.json({error:"Enter a Lokal name and valid YouTube URL."},{status:400});const videoId=getYouTubeId(p.data.youtube_url);if(!videoId||!/^[a-zA-Z0-9_-]{11}$/.test(videoId))return NextResponse.json({error:"That does not look like a valid YouTube video URL."},{status:400});const rows=await sql`UPDATE lokals SET name=${p.data.name},description=${p.data.description},youtube_url=${p.data.youtube_url},youtube_video_id=${videoId},updated_at=NOW() WHERE id=${id} AND admin_id=${admin.id} RETURNING id`;if(!rows.length)return NextResponse.json({error:"Lokal not found."},{status:404});return NextResponse.json({ok:true})}catch(e){console.error("update lokal error",e);return NextResponse.json({error:"Could not update Lokal."},{status:500})}}
-export async function DELETE(_req:Request,ctx:Ctx){const admin=await getSession();if(!admin)return NextResponse.json({error:"Unauthorized"},{status:401});const {id}=await ctx.params;try{const rows=await sql`DELETE FROM lokals WHERE id=${id} AND admin_id=${admin.id} RETURNING id`;if(!rows.length)return NextResponse.json({error:"Lokal not found."},{status:404});return NextResponse.json({ok:true})}catch(e){console.error("delete lokal error",e);return NextResponse.json({error:"Could not delete Lokal."},{status:500})}}
